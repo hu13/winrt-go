@@ -25,13 +25,17 @@ clean: $(clean_targets)
 
 .PHONY: gen-files
 gen-files:
-	rm -rf $(CURDIR)/windows
+	# rm -rf $(CURDIR)/windows
 	go generate github.com/saltosystems/winrt-go/...
+
+.PHONY: pv
+pv:
+	go generate github.com/saltosystems/winrt-go/winrt_preveil.go
 
 .PHONY: check-generated
 check-generated: export WINRT_GO_GEN_VALIDATE=1
 check-generated:
-	 go generate github.com/saltosystems/winrt-go/...
+	go generate github.com/saltosystems/winrt-go/...
 
 .PHONY: go-test
 go-test:
