@@ -351,6 +351,11 @@ func getMany(inst, itemsAmount, outItems, outItemsSize unsafe.Pointer) uintptr {
 		requestedItems = availableItems
 	}
 
+	// write items size
+	value := uint32(requestedItems)
+	log.Printf("Writing %d to outItemsSize at %p\n", value, outItemsSize)
+	*(*uint32)(outItemsSize) = value
+
 	// copy items
 	n := uintptr(0)
 	hasCurrent := false // unused
@@ -359,8 +364,6 @@ func getMany(inst, itemsAmount, outItems, outItemsSize unsafe.Pointer) uintptr {
 		n += copyItemToPointer(items[it.index], unsafe.Pointer(uintptr(outItems)+n))
 	}
 
-	// output size
-	*(*uint32)(outItemsSize) = uint32(requestedItems) /*the amount of items*/
 	return ole.S_OK
 }
 

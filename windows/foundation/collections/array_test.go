@@ -8,21 +8,21 @@ import (
 )
 
 func Test_GetCurrent(t *testing.T) {
-	a := NewArrayIterable([]any{1, 2, 3}, winrt.SignatureInt32)
+	a := NewArrayIterable([]any{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, winrt.SignatureInt32)
 
 	it, err := a.First()
 	require.NoError(t, err)
 
 	var ok bool = false
+	i := 1
 	for ok, err = it.MoveNext(); err == nil && ok; ok, err = it.MoveNext() {
 		b, err := it.GetHasCurrent()
 		require.NoError(t, err)
 		require.True(t, b)
-
 		ptr, err := it.GetCurrent()
 		require.NoError(t, err)
-
-		println(int(uintptr(ptr)))
+		require.Equal(t, i, int(uintptr(ptr)))
+		i++
 	}
 }
 
@@ -33,10 +33,15 @@ func Test_GetMany(t *testing.T) {
 	require.NoError(t, err)
 	resp, n, err := it.GetMany(12)
 	require.NoError(t, err)
+	require.Equal(t, uint32(3), n)
 
 	println("RESP", n, resp, len(resp))
 
-	for i := 0; i < len(resp); i++ {
-		println(int(uintptr(resp[i])))
+	var i uint32
+	var j int = 101
+	for i = 0; i < n; i++ {
+		val := int(uintptr(resp[i]))
+		require.Equal(t, j, val)
+		j += 101
 	}
 }
