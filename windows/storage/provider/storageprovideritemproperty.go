@@ -6,6 +6,7 @@
 package provider
 
 import (
+	"fmt"
 	"syscall"
 	"unsafe"
 
@@ -36,7 +37,9 @@ func (impl *StorageProviderItemProperty) SetId(value int32) error {
 func (impl *StorageProviderItemProperty) GetId() (int32, error) {
 	itf := impl.MustQueryInterface(ole.NewGUID(GUIDiStorageProviderItemProperty))
 	defer itf.Release()
+	fmt.Println("ggggg", itf)
 	v := (*iStorageProviderItemProperty)(unsafe.Pointer(itf))
+	fmt.Println("get id", v)
 	return v.GetId()
 }
 

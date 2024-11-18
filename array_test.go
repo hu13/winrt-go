@@ -1,14 +1,13 @@
-package collections
+package winrt
 
 import (
 	"testing"
 
-	"github.com/saltosystems/winrt-go"
 	"github.com/stretchr/testify/require"
 )
 
 func Test_GetCurrent(t *testing.T) {
-	a := NewArrayIterable([]any{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, winrt.SignatureInt32)
+	a := NewArrayIterable([]any{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, SignatureInt32)
 
 	it, err := a.First()
 	require.NoError(t, err)
@@ -27,7 +26,7 @@ func Test_GetCurrent(t *testing.T) {
 }
 
 func Test_GetMany(t *testing.T) {
-	a := NewArrayIterable([]any{101, 202, 303}, winrt.SignatureInt32)
+	a := NewArrayIterable([]any{101, 202, 303}, SignatureInt32)
 
 	it, err := a.First()
 	require.NoError(t, err)

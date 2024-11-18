@@ -1,43 +1,24 @@
-package collections
+package winrt
 
 import (
-	"log"
+	"reflect"
 	"sync"
 	"syscall"
 	"unsafe"
 
 	"github.com/go-ole/go-ole"
-	"github.com/saltosystems/winrt-go"
-
-	"github.com/saltosystems/winrt-go/internal/delegate"
+	"github.com/saltosystems/winrt-go/internal/iunknown"
 	"github.com/saltosystems/winrt-go/internal/kernel32"
+	"github.com/saltosystems/winrt-go/windows/foundation/collections"
 )
-
-var (
-	ole32                     = syscall.NewLazyDLL("ole32.dll")
-	procCoRegisterClassObject = ole32.NewProc("CoRegisterClassObject")
-)
-
-func RegisterInstance(clsid *ole.GUID, obj unsafe.Pointer) (*ole.IUnknown, error) {
-	var cookie uintptr
-	ret, _, err := procCoRegisterClassObject.Call(
-		uintptr(unsafe.Pointer(clsid)),   // CLSID
-		uintptr(obj),                     // Object implementing the interface
-		uintptr(ole.CLSCTX_LOCAL_SERVER), // Context (adjust as needed)
-		uintptr(1),                       // Flags
-		uintptr(unsafe.Pointer(&cookie)), // Out cookie
-	)
-	log.Println(">>>>>", ret, err)
-	if ret != 0 {
-		return nil, ole.NewError(ret)
-	}
-	return nil, nil
-
-}
 
 var (
 	firstCallback = syscall.NewCallback(first)
 )
+
+func init() {
+	ole.RoInitialize(1)
+}
 
 // We cannot pass a pointer that includes Go pointers to WinRT
 // so we either copy the arrays manually into the Heap
@@ -79,37 +60,29 @@ func (i *syncArrayIterables) remove(instPtr unsafe.Pointer) {
 }
 
 type arrayIterable struct {
-	IIterable
+	collections.IIterable
 	sync.Mutex
 	refs          uintptr
 	IID           ole.GUID
 	itemSignature string
 }
 
-func init() {
-	ole.CoInitialize(0)
-}
-
-func NewArrayIterable(items []any, itemSignature string) *IIterable {
-	iid := ole.NewGUID(winrt.ParameterizedInstanceGUID(GUIDIIterable, itemSignature))
-
+func NewArrayIterable(items []any, itemSignature string) *collections.IIterable {
 	// create type instance
 	size := unsafe.Sizeof(*(*arrayIterable)(nil))
 	instPtr := kernel32.Malloc(size)
 	inst := (*arrayIterable)(instPtr)
 
 	// get the callbacks for the VTable
-	callbacks := delegate.RegisterCallbacks(instPtr, inst)
-
-	log.Printf("Registering instance with CLSID: %s", iid.String())
+	callbacks := iunknown.RegisterInstance(instPtr, inst)
 
 	// the VTable should also be allocated in the heap
-	sizeVTable := unsafe.Sizeof(*(*IIterableVtbl)(nil))
+	sizeVTable := unsafe.Sizeof(*(*collections.IIterableVtbl)(nil))
 	vTablePtr := kernel32.Malloc(sizeVTable)
 
 	inst.RawVTable = (*interface{})(vTablePtr)
 
-	vTable := (*IIterableVtbl)(vTablePtr)
+	vTable := (*collections.IIterableVtbl)(vTablePtr)
 	vTable.IUnknownVtbl = ole.IUnknownVtbl{
 		QueryInterface: callbacks.QueryInterface,
 		AddRef:         callbacks.AddRef,
@@ -118,7 +91,9 @@ func NewArrayIterable(items []any, itemSignature string) *IIterable {
 	vTable.First = firstCallback
 
 	arrayItems.add(instPtr, items)
+
 	// Initialize all properties: the malloc may contain garbage
+	iid := ole.NewGUID(ParameterizedInstanceGUID(collections.GUIDIIterable, itemSignature))
 	inst.IID = *iid // copy contents
 	inst.Mutex = sync.Mutex{}
 	inst.refs = 0
@@ -130,16 +105,6 @@ func NewArrayIterable(items []any, itemSignature string) *IIterable {
 
 func (r *arrayIterable) GetIID() *ole.GUID {
 	return &r.IID
-}
-
-// not sure
-func (r *arrayIterable) Invoke(instancePtr, rawArgs0, rawArgs1, rawArgs2, rawArgs3, rawArgs4, rawArgs5, rawArgs6, rawArgs7, rawArgs8 unsafe.Pointer) uintptr {
-	_, ok := arrayItems.get(instancePtr)
-	if !ok {
-		// instance not found
-		return ole.E_FAIL
-	}
-	return ole.S_OK
 }
 
 // addRef increments the reference counter by one
@@ -174,9 +139,10 @@ func (r *arrayIterable) Release() uintptr {
 	return rem
 }
 
-func first(inst unsafe.Pointer, out **IIterator) uintptr {
+func first(inst unsafe.Pointer, out **collections.IIterator) uintptr {
 	offset := unsafe.Offsetof(arrayIterable{}.IIterable)
 	i := (*arrayIterable)(unsafe.Pointer(uintptr(inst) - offset))
+
 	arrIt, ok := arrayItems.get(inst)
 	if !ok {
 		return ole.E_FAIL
@@ -184,8 +150,7 @@ func first(inst unsafe.Pointer, out **IIterator) uintptr {
 
 	it := NewArrayIterator(arrIt, i.itemSignature)
 
-	m := (**IIterator)(out)
-	*m = it
+	*out = it
 	return ole.S_OK
 }
 
@@ -197,7 +162,7 @@ var (
 )
 
 type collectionsIterator struct {
-	IIterator
+	collections.IIterator
 	sync.Mutex
 	refs          uintptr
 	IID           ole.GUID
@@ -205,30 +170,27 @@ type collectionsIterator struct {
 	itemSignature string
 }
 
-func NewArrayIterator(items []any, itemSignature string) *IIterator {
-	iid := ole.NewGUID(winrt.ParameterizedInstanceGUID(GUIDIIterator, itemSignature))
-
+func NewArrayIterator(items []any, itemSignature string) *collections.IIterator {
 	// create type instance
 	size := unsafe.Sizeof(*(*collectionsIterator)(nil))
 	instPtr := kernel32.Malloc(size)
 	inst := (*collectionsIterator)(instPtr)
 
 	// get the callbacks for the VTable
-	callbacks := delegate.RegisterCallbacks(instPtr, inst)
+	callbacks := iunknown.RegisterInstance(instPtr, inst)
 
 	// the VTable should also be allocated in the heap
-	sizeVTable := unsafe.Sizeof(*(*IIterableVtbl)(nil))
+	sizeVTable := unsafe.Sizeof(*(*collections.IIterableVtbl)(nil))
 	vTablePtr := kernel32.Malloc(sizeVTable)
 
 	inst.RawVTable = (*interface{})(vTablePtr)
 
-	vTable := (*IIteratorVtbl)(vTablePtr)
+	vTable := (*collections.IIteratorVtbl)(vTablePtr)
 	vTable.IUnknownVtbl = ole.IUnknownVtbl{
 		QueryInterface: callbacks.QueryInterface,
 		AddRef:         callbacks.AddRef,
 		Release:        callbacks.Release,
 	}
-
 	vTable.GetCurrent = getCurrentCallback
 	vTable.GetHasCurrent = getHasCurrentCallback
 	vTable.GetMany = getManyCallback
@@ -237,6 +199,7 @@ func NewArrayIterator(items []any, itemSignature string) *IIterator {
 	arrayItems.add(instPtr, items)
 
 	// Initialize all properties: the malloc may contain garbage
+	iid := ole.NewGUID(ParameterizedInstanceGUID(collections.GUIDIIterator, itemSignature))
 	inst.IID = *iid // copy contents
 	inst.Mutex = sync.Mutex{}
 	inst.refs = 0
@@ -268,11 +231,6 @@ func (r *collectionsIterator) removeRef() uintptr {
 	}
 
 	return r.refs
-}
-
-func (instance *collectionsIterator) Invoke(instancePtr, rawArgs0, rawArgs1, rawArgs2, rawArgs3, rawArgs4, rawArgs5, rawArgs6, rawArgs7, rawArgs8 unsafe.Pointer) uintptr {
-	log.Println("Invoke not implemented")
-	return ole.S_OK
 }
 
 // removeRef decrements the reference counter by one. If it was already zero, it will just return zero.
@@ -346,23 +304,21 @@ func getMany(inst, itemsAmount, outItems, outItemsSize unsafe.Pointer) uintptr {
 	// requested itemsAmount
 	requestedItems := int(uintptr(itemsAmount))
 	availableItems := len(items) - it.index - 1
-	if availableItems < requestedItems {
+	returnItems := requestedItems
+	if returnItems > availableItems {
 		// not enough items available
-		requestedItems = availableItems
+		returnItems = availableItems
 	}
-
-	// write items size
-	value := uint32(requestedItems)
-	log.Printf("Writing %d to outItemsSize at %p\n", value, outItemsSize)
-	*(*uint32)(outItemsSize) = value
 
 	// copy items
 	n := uintptr(0)
-	hasCurrent := false // unused
-	for i := 0; i < requestedItems; i++ {
-		moveNext(inst, unsafe.Pointer(&hasCurrent))
+	for i := 0; i < returnItems; i++ {
+		it.index++
 		n += copyItemToPointer(items[it.index], unsafe.Pointer(uintptr(outItems)+n))
 	}
+
+	// output size
+	*(*uint32)(outItemsSize) = uint32(returnItems) /*the amount of items*/
 
 	return ole.S_OK
 }
@@ -400,9 +356,9 @@ func copyItemToPointer(item any, out unsafe.Pointer) uintptr {
 	case int64:
 		*(*int64)(out) = t
 		size = unsafe.Sizeof(int64(0))
-	case *any:
-		*(*any)(out) = t
-		size = unsafe.Sizeof(uintptr(0))
+	default: //pointer type
+		*(*unsafe.Pointer)(out) = reflect.ValueOf(t).UnsafePointer()
+		size = unsafe.Sizeof(unsafe.Pointer(nil))
 	}
 
 	return size
