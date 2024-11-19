@@ -6,9 +6,14 @@ import (
 	"testing"
 	"unsafe"
 
+	"github.com/go-ole/go-ole"
 	"github.com/saltosystems/winrt-go"
 	"github.com/stretchr/testify/require"
 )
+
+func init() {
+	ole.RoInitialize(1)
+}
 
 func Test_GetManyStorageProperyItem(t *testing.T) {
 

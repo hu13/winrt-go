@@ -16,10 +16,6 @@ var (
 	firstCallback = syscall.NewCallback(first)
 )
 
-func init() {
-	ole.RoInitialize(1)
-}
-
 // We cannot pass a pointer that includes Go pointers to WinRT
 // so we either copy the arrays manually into the Heap
 // or store them somewhere in Go (which is simpler).
