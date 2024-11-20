@@ -2,6 +2,9 @@ package winrt
 
 // for preveil cloud drive
 
+// FIXME: need to filter out methods that are not supported by the current implementation
+//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.StorageFolder
+
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.FileProperties.ThumbnailOptions
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.FileProperties.ThumbnailMode
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.FileProperties.StorageItemContentProperties -method-filter !RetrievePropertiesAsync -method-filter !SavePropertiesAsync -method-filter !SavePropertiesAsyncOverloadDefault
