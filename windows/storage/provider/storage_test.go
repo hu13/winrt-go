@@ -155,7 +155,9 @@ func Test_GetCurrentSyncRoots(t *testing.T) {
 	fmt.Println("Number of roots:", numRoots)
 	require.True(t, numRoots == 0)
 
-	syncRootPath, err := os.MkdirTemp(os.TempDir(), "syncRootPath")
+	tempBase, err := os.UserCacheDir()
+	require.NoError(t, err)
+	syncRootPath, err := os.MkdirTemp(tempBase, "syncRootPath")
 	require.NoError(t, err)
 
 	writer, err := streams.NewDataWriter()
