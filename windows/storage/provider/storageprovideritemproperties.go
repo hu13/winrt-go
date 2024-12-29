@@ -42,7 +42,7 @@ func StorageProviderItemPropertiesSetAsync(item *storage.IStorageItem, itemPrope
 	var out *foundation.IAsyncAction
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderItemPropertiesSetAsync,
-		0,                                       // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),              // this
 		uintptr(unsafe.Pointer(item)),           // in storage.IStorageItem
 		uintptr(unsafe.Pointer(itemProperties)), // in collections.IIterable
 		uintptr(unsafe.Pointer(&out)),           // out foundation.IAsyncAction

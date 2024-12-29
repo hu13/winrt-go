@@ -560,7 +560,7 @@ func UriUnescapeComponent(toUnescape string) (string, error) {
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().UriUnescapeComponent,
-		0,                                 // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),        // this
 		uintptr(toUnescapeHStr),           // in string
 		uintptr(unsafe.Pointer(&outHStr)), // out string
 	)
@@ -588,7 +588,7 @@ func UriEscapeComponent(toEscape string) (string, error) {
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().UriEscapeComponent,
-		0,                                 // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),        // this
 		uintptr(toEscapeHStr),             // in string
 		uintptr(unsafe.Pointer(&outHStr)), // out string
 	)
@@ -634,7 +634,7 @@ func UriCreateUri(uri string) (*Uri, error) {
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().UriCreateUri,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(uriHStr),              // in string
 		uintptr(unsafe.Pointer(&out)), // out Uri
 	)
@@ -664,7 +664,7 @@ func UriCreateWithRelativeUri(baseUri string, relativeUri string) (*Uri, error) 
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().UriCreateWithRelativeUri,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(baseUriHStr),          // in string
 		uintptr(relativeUriHStr),      // in string
 		uintptr(unsafe.Pointer(&out)), // out Uri

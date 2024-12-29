@@ -41,7 +41,7 @@ func StorageProviderSyncRootManagerIsSupported() (bool, error) {
 	var out bool
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerIsSupported,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(unsafe.Pointer(&out)), // out bool
 	)
 
@@ -82,7 +82,7 @@ func StorageProviderSyncRootManagerRegister(syncRootInformation *StorageProvider
 
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerRegister,
-		0, // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),                   // this
 		uintptr(unsafe.Pointer(syncRootInformation)), // in StorageProviderSyncRootInfo
 	)
 
@@ -106,8 +106,8 @@ func StorageProviderSyncRootManagerUnregister(id string) error {
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerUnregister,
-		0,               // this is a static func, so there's no this
-		uintptr(idHStr), // in string
+		uintptr(unsafe.Pointer(v)), // this
+		uintptr(idHStr),            // in string
 	)
 
 	if hr != 0 {
@@ -127,7 +127,7 @@ func StorageProviderSyncRootManagerGetSyncRootInformationForFolder(folder *stora
 	var out *StorageProviderSyncRootInfo
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerGetSyncRootInformationForFolder,
-		0,                               // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),      // this
 		uintptr(unsafe.Pointer(folder)), // in storage.IStorageFolder
 		uintptr(unsafe.Pointer(&out)),   // out StorageProviderSyncRootInfo
 	)
@@ -153,7 +153,7 @@ func StorageProviderSyncRootManagerGetSyncRootInformationForId(id string) (*Stor
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerGetSyncRootInformationForId,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(idHStr),               // in string
 		uintptr(unsafe.Pointer(&out)), // out StorageProviderSyncRootInfo
 	)
@@ -175,7 +175,7 @@ func StorageProviderSyncRootManagerGetCurrentSyncRoots() (*collections.IVectorVi
 	var out *collections.IVectorView
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerGetCurrentSyncRoots,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(unsafe.Pointer(&out)), // out collections.IVectorView
 	)
 

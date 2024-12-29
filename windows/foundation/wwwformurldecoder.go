@@ -95,7 +95,7 @@ func WwwFormUrlDecoderCreateWwwFormUrlDecoder(query string) (*WwwFormUrlDecoder,
 	}
 	hr, _, _ := syscall.SyscallN(
 		v.VTable().WwwFormUrlDecoderCreateWwwFormUrlDecoder,
-		0,                             // this is a static func, so there's no this
+		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(queryHStr),            // in string
 		uintptr(unsafe.Pointer(&out)), // out WwwFormUrlDecoder
 	)
