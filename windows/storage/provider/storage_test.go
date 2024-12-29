@@ -148,6 +148,10 @@ func Test_GetCurrentSyncRoots(t *testing.T) {
 	// tr := initTestResource(t, withTestBrowseDirFn(defaultBrowseDirTestFunc), withConnectSyncRoot())
 	// defer tr.cleanUp()
 
+	ok, err := StorageProviderSyncRootManagerIsSupported()
+	require.NoError(t, err)
+	require.True(t, ok)
+
 	roots, err := StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	require.NoError(t, err)
 	numRoots, err := roots.GetSize()
@@ -175,7 +179,7 @@ func Test_GetCurrentSyncRoots(t *testing.T) {
 	err = syncRootInfo.SetContext(bufferContext)
 	require.NoError(t, err)
 
-	syncRootInfo.SetId("{00000000-0000-0000-0000-000000000001}")
+	syncRootInfo.SetId("{00000000-1234-0000-0000-000000000001}")
 	require.NoError(t, err)
 	dir, err := GetFolderFromPath(syncRootPath)
 	require.NoError(t, err)
