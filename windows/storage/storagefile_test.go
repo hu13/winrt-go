@@ -86,10 +86,3 @@ func Test_GetStorageFileFromPath(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, filepath.Base(fpath), name)
 }
-
-func (impl *StorageFile) GetName() (string, error) {
-	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
-	defer itf.Release()
-	v := (*IStorageItem)(unsafe.Pointer(itf))
-	return v.GetName()
-}

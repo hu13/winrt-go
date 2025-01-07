@@ -11,12 +11,230 @@ import (
 
 	"github.com/go-ole/go-ole"
 	"github.com/saltosystems/winrt-go/windows/foundation"
+	"github.com/saltosystems/winrt-go/windows/storage/fileproperties"
 )
 
 const SignatureStorageFile string = "rc(Windows.Storage.StorageFile;{fa3f6186-4214-428c-a64c-14c9ac7315ea})"
 
 type StorageFile struct {
 	ole.IUnknown
+}
+
+func (impl *StorageFile) GetFileType() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.GetFileType()
+}
+
+func (impl *StorageFile) GetContentType() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.GetContentType()
+}
+
+func (impl *StorageFile) OpenAsync(accessMode FileAccessMode) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.OpenAsync(accessMode)
+}
+
+func (impl *StorageFile) OpenTransactedWriteAsync() (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.OpenTransactedWriteAsync()
+}
+
+func (impl *StorageFile) CopyOverloadDefaultNameAndOptions(destinationFolder *IStorageFolder) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.CopyOverloadDefaultNameAndOptions(destinationFolder)
+}
+
+func (impl *StorageFile) CopyOverloadDefaultOptions(destinationFolder *IStorageFolder, desiredNewName string) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.CopyOverloadDefaultOptions(destinationFolder, desiredNewName)
+}
+
+func (impl *StorageFile) CopyOverload(destinationFolder *IStorageFolder, desiredNewName string, option NameCollisionOption) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.CopyOverload(destinationFolder, desiredNewName, option)
+}
+
+func (impl *StorageFile) CopyAndReplaceAsync(fileToReplace *IStorageFile) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.CopyAndReplaceAsync(fileToReplace)
+}
+
+func (impl *StorageFile) MoveOverloadDefaultNameAndOptions(destinationFolder *IStorageFolder) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.MoveOverloadDefaultNameAndOptions(destinationFolder)
+}
+
+func (impl *StorageFile) MoveOverloadDefaultOptions(destinationFolder *IStorageFolder, desiredNewName string) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.MoveOverloadDefaultOptions(destinationFolder, desiredNewName)
+}
+
+func (impl *StorageFile) MoveOverload(destinationFolder *IStorageFolder, desiredNewName string, option NameCollisionOption) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.MoveOverload(destinationFolder, desiredNewName, option)
+}
+
+func (impl *StorageFile) MoveAndReplaceAsync(fileToReplace *IStorageFile) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFile))
+	defer itf.Release()
+	v := (*IStorageFile)(unsafe.Pointer(itf))
+	return v.MoveAndReplaceAsync(fileToReplace)
+}
+
+func (impl *StorageFile) RenameAsyncOverloadDefaultOptions(desiredName string) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.RenameAsyncOverloadDefaultOptions(desiredName)
+}
+
+func (impl *StorageFile) RenameAsync(desiredName string, option NameCollisionOption) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.RenameAsync(desiredName, option)
+}
+
+func (impl *StorageFile) DeleteAsyncOverloadDefaultOptions() (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.DeleteAsyncOverloadDefaultOptions()
+}
+
+func (impl *StorageFile) DeleteAsync(option StorageDeleteOption) (*foundation.IAsyncAction, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.DeleteAsync(option)
+}
+
+func (impl *StorageFile) GetBasicPropertiesAsync() (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.GetBasicPropertiesAsync()
+}
+
+func (impl *StorageFile) GetName() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.GetName()
+}
+
+func (impl *StorageFile) GetPath() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.GetPath()
+}
+
+func (impl *StorageFile) GetAttributes() (FileAttributes, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.GetAttributes()
+}
+
+func (impl *StorageFile) GetDateCreated() (foundation.DateTime, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.GetDateCreated()
+}
+
+func (impl *StorageFile) IsOfType(mType StorageItemTypes) (bool, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItem))
+	defer itf.Release()
+	v := (*IStorageItem)(unsafe.Pointer(itf))
+	return v.IsOfType(mType)
+}
+
+func (impl *StorageFile) GetThumbnailAsyncOverloadDefaultSizeDefaultOptions(mode fileproperties.ThumbnailMode) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetThumbnailAsyncOverloadDefaultSizeDefaultOptions(mode)
+}
+
+func (impl *StorageFile) GetThumbnailAsyncOverloadDefaultOptions(mode fileproperties.ThumbnailMode, requestedSize uint32) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetThumbnailAsyncOverloadDefaultOptions(mode, requestedSize)
+}
+
+func (impl *StorageFile) GetThumbnailAsync(mode fileproperties.ThumbnailMode, requestedSize uint32, options fileproperties.ThumbnailOptions) (*foundation.IAsyncOperation, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetThumbnailAsync(mode, requestedSize, options)
+}
+
+func (impl *StorageFile) GetDisplayName() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetDisplayName()
+}
+
+func (impl *StorageFile) GetDisplayType() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetDisplayType()
+}
+
+func (impl *StorageFile) GetFolderRelativeId() (string, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetFolderRelativeId()
+}
+
+func (impl *StorageFile) GetProperties() (*fileproperties.StorageItemContentProperties, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemProperties))
+	defer itf.Release()
+	v := (*IStorageItemProperties)(unsafe.Pointer(itf))
+	return v.GetProperties()
+}
+
+func (impl *StorageFile) GetProvider() (*StorageProvider, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageItemPropertiesWithProvider))
+	defer itf.Release()
+	v := (*IStorageItemPropertiesWithProvider)(unsafe.Pointer(itf))
+	return v.GetProvider()
+}
+
+func (impl *StorageFile) GetIsAvailable() (bool, error) {
+	itf := impl.MustQueryInterface(ole.NewGUID(GUIDIStorageFilePropertiesWithAvailability))
+	defer itf.Release()
+	v := (*IStorageFilePropertiesWithAvailability)(unsafe.Pointer(itf))
+	return v.GetIsAvailable()
 }
 
 const GUIDiStorageFileStatics string = "5984c710-daf2-43c8-8bb4-a4d3eacfd03f"
@@ -57,6 +275,28 @@ func StorageFileGetFileFromPathAsync(path string) (*foundation.IAsyncOperation, 
 		v.VTable().StorageFileGetFileFromPathAsync,
 		uintptr(unsafe.Pointer(v)),    // this
 		uintptr(pathHStr),             // in string
+		uintptr(unsafe.Pointer(&out)), // out foundation.IAsyncOperation
+	)
+
+	if hr != 0 {
+		return nil, ole.NewError(hr)
+	}
+
+	return out, nil
+}
+
+func StorageFileGetFileFromApplicationUriAsync(uri *foundation.Uri) (*foundation.IAsyncOperation, error) {
+	inspectable, err := ole.RoGetActivationFactory("Windows.Storage.StorageFile", ole.NewGUID(GUIDiStorageFileStatics))
+	if err != nil {
+		return nil, err
+	}
+	v := (*iStorageFileStatics)(unsafe.Pointer(inspectable))
+
+	var out *foundation.IAsyncOperation
+	hr, _, _ := syscall.SyscallN(
+		v.VTable().StorageFileGetFileFromApplicationUriAsync,
+		uintptr(unsafe.Pointer(v)),    // this
+		uintptr(unsafe.Pointer(uri)),  // in foundation.Uri
 		uintptr(unsafe.Pointer(&out)), // out foundation.IAsyncOperation
 	)
 
