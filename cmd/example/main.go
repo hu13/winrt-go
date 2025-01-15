@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 	"unsafe"
 
@@ -173,9 +174,6 @@ func run() error {
 }
 
 func run2() error {
-	// tr := initTestResource(t, withTestBrowseDirFn(defaultBrowseDirTestFunc), withConnectSyncRoot())
-	// defer tr.cleanUp()
-
 	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	if err != nil {
 		return err
@@ -230,19 +228,23 @@ func run2() error {
 	idd, err := syncRootInfo.GetId()
 	fmt.Println(">>>>>>> idddd", idd, err)
 
-	storageFolderAsync, err := storage.StorageFolderGetFolderFromPathAsync(syncRootPath)
+	res, err := GetFolderFromPath(syncRootPath)
 	if err != nil {
 		return err
 	}
+	// storageFolderAsync, err := storage.StorageFolderGetFolderFromPathAsync(syncRootPath)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if err := awaitAsyncOperation(storageFolderAsync, storage.SignatureStorageFolder); err != nil {
-		return err
-	}
+	// if err := awaitAsyncOperation(storageFolderAsync, storage.SignatureStorageFolder); err != nil {
+	// 	return err
+	// }
 
-	res, err := storageFolderAsync.GetResults()
-	if err != nil {
-		return err
-	}
+	// res, err := storageFolderAsync.GetResults()
+	// if err != nil {
+	// 	return err
+	// }
 
 	dir := (*storage.StorageFolder)(res)
 
@@ -287,7 +289,7 @@ func run2() error {
 	// syncRootInfo.SetAllowPinning(true)
 	// syncRootInfo.SetShowSiblingsAsGroup(false)
 	// syncRootInfo.SetProtectionMode(0)
-	// syncRootInfo.SetDisplayNameResource("DisplayNameResource")
+	syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
 	//PrintAllFields(syncRootInfo)
 	fmt.Println(">>>>>>> sync root info", syncRootInfo)
 
