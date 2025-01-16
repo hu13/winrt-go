@@ -3,8 +3,7 @@ package winrt
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.Streams.IDataWriter -method-filter WriteBytes -method-filter DetachBuffer -method-filter !*
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.Streams.DataWriter -method-filter WriteBytes -method-filter DetachBuffer -method-filter DataWriter -method-filter Close -method-filter !*
 
-// FIXME: need to filter out methods that are not supported by the current implementation
-//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.StorageFolder -method-filter GetFolderFromPathAsync -method-filter !*
+//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.StorageFolder -method-filter !CreateFileQueryOverloadDefault -method-filter !CreateFileQuery -method-filter !CreateFileQueryWithOptions -method-filter !CreateFolderQueryOverloadDefault -method-filter !CreateFolderQuery -method-filter !CreateFolderQueryWithOptions -method-filter !CreateItemQuery -method-filter !CreateItemQueryWithOptions -method-filter !GetFilesAsync -method-filter !GetFilesAsyncOverloadDefaultStartAndCount -method-filter !AreQueryOptionsSupported -method-filter !IsCommonFolderQuerySupported -method-filter !IsCommonFileQuerySupported -method-filter !TryGetChangeTracker -method-filter !GetFoldersAsync -method-filter !GetFoldersAsyncOverloadDefaultStartAndCount -method-filter !GetIndexedStateAsync -method-filter !GetItemsAsync -method-filter !GetFolderFromPathForUserAsync
 
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.StorageFile -method-filter !OpenSequentialReadAsync -method-filter !OpenReadAsync -method-filter !GetScaledImageAsThumbnailAsyncOverloadDefaultSizeDefaultOptions -method-filter !GetScaledImageAsThumbnailAsyncOverloadDefaultOptions -method-filter !GetScaledImageAsThumbnailAsync -method-filter !GetParentAsync -method-filter !CreateStreamedFileAsync -method-filter !GetFileFromPathForUserAsync -method-filter !IsEqual -method-filter !OpenWithOptionsAsync -method-filter !OpenTransactedWriteWithOptionsAsync -method-filter !ReplaceWithStreamedFileAsync -method-filter !CreateStreamedFileFromUriAsync -method-filter !ReplaceWithStreamedFileFromUriAsync
 
@@ -42,11 +41,13 @@ package winrt
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.Provider.StorageProviderProtectionMode
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.Provider.StorageProviderHardlinkPolicy
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageFolder
+//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageFolder2
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.CreationCollisionOption
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.Provider.StorageProviderSyncRootManager
 
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageFile
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageItem
+//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageItem2
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.NameCollisionOption
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Foundation.IAsyncAction
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Foundation.AsyncActionCompletedHandler
@@ -56,4 +57,5 @@ package winrt
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.FileAccessMode
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.StorageItemTypes
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageItemProperties
+//go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Storage.IStorageItemProperties2
 //go:generate go run github.com/saltosystems/winrt-go/cmd/winrt-go-gen -debug -class Windows.Foundation.IAsyncInfo

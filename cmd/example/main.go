@@ -45,7 +45,9 @@ func GetFolderFromPath(fp string) (*storage.StorageFolder, error) {
 
 		// Cast the result to a StorageFile
 		folder = (*storage.StorageFolder)(resultPtr)
-		log.Printf("Retrieved StorageFolder: %+v", folder)
+		folderPath, _ := folder.GetPath()
+		createdDate, _ := folder.GetDateCreated()
+		log.Printf("Retrieved StorageFolder: %v, path: %v, createdDate: %v", folder, folderPath, createdDate)
 	}
 	iid := winrt.ParameterizedInstanceGUID(foundation.GUIDAsyncOperationCompletedHandler, storage.SignatureStorageFolder)
 	handler := foundation.NewAsyncOperationCompletedHandler(ole.NewGUID(iid), onCompleteCB)
