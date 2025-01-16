@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
+	"syscall"
 	"time"
 	"unsafe"
 
@@ -195,8 +195,6 @@ func run2() error {
 		return err
 	}
 
-	println(syncRootPath)
-
 	writer, err := streams.NewDataWriter()
 	if err != nil {
 		return err
@@ -212,6 +210,16 @@ func run2() error {
 		return err
 	}
 
+	reader, err := streams.DataReaderFromBuffer(bufferContext)
+	if err != nil {
+		return err
+	}
+	bufferContent, err := reader.ReadBytes(uint32(len(syncRootId)))
+	if err != nil {
+		return err
+	}
+	fmt.Println(">>>>>>> buffer content", bufferContent, string(bufferContent))
+
 	syncRootInfo, err := provider.NewStorageProviderSyncRootInfo()
 	if err != nil {
 		return err
@@ -222,34 +230,20 @@ func run2() error {
 		return err
 	}
 
-	err = syncRootInfo.SetId("00000000-0000-0000-0000-000000000000")
+	// required
+	err = syncRootInfo.SetId("OneDrive!S-1-1234!Personal")
 	if err != nil {
 		return err
 	}
-
 	idd, err := syncRootInfo.GetId()
 	fmt.Println(">>>>>>> idddd", idd, err)
 
+	// this is not causing the crash
 	res, err := GetFolderFromPath(syncRootPath)
 	if err != nil {
 		return err
 	}
-	// storageFolderAsync, err := storage.StorageFolderGetFolderFromPathAsync(syncRootPath)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if err := awaitAsyncOperation(storageFolderAsync, storage.SignatureStorageFolder); err != nil {
-	// 	return err
-	// }
-
-	// res, err := storageFolderAsync.GetResults()
-	// if err != nil {
-	// 	return err
-	// }
-
 	dir := (*storage.StorageFolder)(res)
-
 	itf3 := dir.MustQueryInterface(ole.NewGUID(storage.GUIDIStorageFolder))
 	defer itf3.Release()
 	iStorageDir := (*storage.IStorageFolder)(unsafe.Pointer(itf3))
@@ -258,9 +252,12 @@ func run2() error {
 		return err
 	}
 
-	gg, err := provider.StorageProviderSyncRootManagerGetSyncRootInformationForFolder(iStorageDir)
-	fmt.Println(">>>>>>>", gg, err)
+	err = syncRootInfo.SetProviderId(syscall.GUID(*ole.IID_NULL))
+	if err != nil {
+		return err
+	}
 
+	// not required coz still crashes without them
 	err = syncRootInfo.SetHydrationPolicy(2)
 	if err != nil {
 		return err
@@ -269,7 +266,7 @@ func run2() error {
 	if err != nil {
 		return err
 	}
-	err = syncRootInfo.SetPopulationPolicy(2)
+	err = syncRootInfo.SetPopulationPolicy(1)
 	if err != nil {
 		return err
 	}
@@ -281,17 +278,19 @@ func run2() error {
 	if err != nil {
 		return err
 	}
-	err = syncRootInfo.SetVersion("1")
+
+	// required
+	err = syncRootInfo.SetVersion("1.0")
 	if err != nil {
 		return err
 	}
 
 	v, err := syncRootInfo.GetVersion()
 	fmt.Println(">>>>>>> version", v, err)
-	// syncRootInfo.SetAllowPinning(true)
-	// syncRootInfo.SetShowSiblingsAsGroup(false)
-	// syncRootInfo.SetProtectionMode(0)
-	syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
+	syncRootInfo.SetAllowPinning(true)
+	syncRootInfo.SetShowSiblingsAsGroup(false)
+	syncRootInfo.SetProtectionMode(1)
+	// syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
 	//PrintAllFields(syncRootInfo)
 	fmt.Println(">>>>>>> sync root info", syncRootInfo)
 
