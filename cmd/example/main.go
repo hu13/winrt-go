@@ -134,24 +134,24 @@ func run() error {
 		return err
 	}
 
-	storageFolderAsync, err := storage.StorageFolderGetFolderFromPathAsync(`C:\Users\hangk\work\winrt-go`)
+	//storageFolderAsync, err := storage.StorageFolderGetFolderFromPathAsync(`C:\Users\feilong2\Desktop\winrt-go`)
+	//if err != nil {
+	//	return err
+	//}
+
+	//if err := awaitAsyncOperation(storageFolderAsync, storage.SignatureStorageFolder); err != nil {
+	//	return err
+	//}
+
+	//res, err := storageFolderAsync.GetResults()
+	//if err != nil {
+	//	return err
+	//}
+
+	res, err := GetFolderFromPath(`C:\Users\feilong2\Desktop\winrt-go`)
 	if err != nil {
 		return err
 	}
-
-	if err := awaitAsyncOperation(storageFolderAsync, storage.SignatureStorageFolder); err != nil {
-		return err
-	}
-
-	res, err := storageFolderAsync.GetResults()
-	if err != nil {
-		return err
-	}
-
-	// res, err := GetFolderFromPath(`C:\Users\hangk\work\windows\pv_cloud_drive_root`)
-	// if err != nil {
-	// 	return err
-	// }
 
 	folder := (*storage.StorageFolder)(res)
 	itf := folder.MustQueryInterface(ole.NewGUID(storage.GUIDIStorageFolder))
@@ -164,13 +164,13 @@ func run() error {
 	// register info
 	err = provider.StorageProviderSyncRootManagerRegister(info)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to register sync root: %v", err)
 	}
 
 	// unregister info
 	err = provider.StorageProviderSyncRootManagerUnregister(infoID)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to unregister sync root: %v", err)
 	}
 
 	// release info
@@ -180,15 +180,15 @@ func run() error {
 }
 
 func run2() error {
-	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
-	if err != nil {
-		return err
-	}
-	numRoots, err := roots.GetSize()
-	if err != nil {
-		return err
-	}
-	fmt.Println("Number of roots:", numRoots)
+	//roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
+	//if err != nil {
+	//	return err
+	//}
+	//numRoots, err := roots.GetSize()
+	//if err != nil {
+	//	return err
+	//}
+	//fmt.Println("Number of roots:", numRoots)
 
 	tempBase, err := os.UserCacheDir()
 	if err != nil {
@@ -332,14 +332,19 @@ func run2() error {
 	runtime.KeepAlive(displayName)
 	fmt.Printf(">>>>>>>>>> syncRootInfo: %+v\n", syncRootInfo)
 
-	roots, err = provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
+	err = provider.StorageProviderSyncRootManagerRegister(syncRootInfo)
+	if err != nil {
+		return fmt.Errorf("failed to register sync root: %v", err)
+	}
+
+	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	if err != nil {
 		return err
 	}
 	fmt.Println(">>>>>>> got current sync roots", roots)
 	fmt.Println(">>>>>>> err", err)
 	fmt.Println("done")
-	numRoots, err = roots.GetSize()
+	numRoots, err := roots.GetSize()
 	if err != nil {
 		return err
 	}
