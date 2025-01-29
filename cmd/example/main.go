@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"runtime"
 	"syscall"
 	"time"
 	"unsafe"
 
 	"github.com/go-ole/go-ole"
+	"github.com/google/uuid"
 	"github.com/saltosystems/winrt-go"
 	"github.com/saltosystems/winrt-go/windows/foundation"
 	"github.com/saltosystems/winrt-go/windows/storage"
 	"github.com/saltosystems/winrt-go/windows/storage/provider"
 	"github.com/saltosystems/winrt-go/windows/storage/streams"
+	"golang.org/x/sys/windows"
 )
 
 func main() {
@@ -230,13 +234,48 @@ func run2() error {
 		return err
 	}
 
+	providerGUID := uuid.New().String()
+	fmt.Println(">>>>>>> set provider guid", providerGUID)
+	// Open the current process token
+	var token windows.Token
+	err = windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token)
+	if err != nil {
+		return err
+	}
+	defer token.Close() // Ensure the token handle is closed
+	user, err := token.GetTokenUser()
+	if err != nil {
+		return err
+	}
+	sid := user.User.Sid.String()
+	syncRootId2 := fmt.Sprintf("%s!%s!%d", providerGUID, sid, -1438710713)
+	fmt.Println(">>>>>>> set sync root id", syncRootId2)
 	// required
-	err = syncRootInfo.SetId("OneDrive!S-1-1234!Personal")
+	err = syncRootInfo.SetId(syncRootId2)
 	if err != nil {
 		return err
 	}
 	idd, err := syncRootInfo.GetId()
-	fmt.Println(">>>>>>> idddd", idd, err)
+	fmt.Println(">>>>>>> get sync root id", idd, err)
+
+	parsedGUID := ole.NewGUID(providerGUID)
+	sysGUID := syscall.GUID{
+		Data1: uint32(parsedGUID.Data1),
+		Data2: parsedGUID.Data2,
+		Data3: parsedGUID.Data3,
+		Data4: [8]byte{parsedGUID.Data4[0], parsedGUID.Data4[1], parsedGUID.Data4[2], parsedGUID.Data4[3], parsedGUID.Data4[4], parsedGUID.Data4[5], parsedGUID.Data4[6], parsedGUID.Data4[7]},
+	}
+	err = syncRootInfo.SetProviderId(sysGUID)
+	if err != nil {
+		return err
+	}
+
+	getid, err := syncRootInfo.GetProviderId()
+	if err != nil {
+		return err
+	}
+	getidStr := fmt.Sprintf("%08x-%04x-%04x-%04x-%012x", getid.Data1, getid.Data2, getid.Data3, getid.Data4[0:2], getid.Data4[2:])
+	fmt.Println(">>>>>>> get providerID:", getidStr)
 
 	// this is not causing the crash
 	res, err := GetFolderFromPath(syncRootPath)
@@ -248,11 +287,6 @@ func run2() error {
 	defer itf3.Release()
 	iStorageDir := (*storage.IStorageFolder)(unsafe.Pointer(itf3))
 	err = syncRootInfo.SetPath(iStorageDir)
-	if err != nil {
-		return err
-	}
-
-	err = syncRootInfo.SetProviderId(syscall.GUID(*ole.IID_NULL))
 	if err != nil {
 		return err
 	}
@@ -284,26 +318,27 @@ func run2() error {
 	if err != nil {
 		return err
 	}
-
-	v, err := syncRootInfo.GetVersion()
-	fmt.Println(">>>>>>> version", v, err)
 	syncRootInfo.SetAllowPinning(true)
 	syncRootInfo.SetShowSiblingsAsGroup(false)
 	syncRootInfo.SetProtectionMode(1)
-	// syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
-	//PrintAllFields(syncRootInfo)
-	fmt.Println(">>>>>>> sync root info", syncRootInfo)
+	syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
+	fmt.Printf(">>>>>>>>>> syncRootInfo: %+v\n", syncRootInfo)
 
 	err = provider.StorageProviderSyncRootManagerRegister(syncRootInfo)
 	if err != nil {
 		return err
 	}
+	runtime.KeepAlive(syncRootInfo)
+
+	fmt.Println(">>>>>>> registered, err", err)
 
 	roots, err = provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	if err != nil {
 		return err
 	}
-	println("done")
+	fmt.Println(">>>>>>> got current sync roots", roots)
+	fmt.Println(">>>>>>> err", err)
+	fmt.Println("done")
 	numRoots, err = roots.GetSize()
 	if err != nil {
 		return err
