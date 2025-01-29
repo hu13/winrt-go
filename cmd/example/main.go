@@ -179,6 +179,23 @@ func run() error {
 	return nil
 }
 
+var (
+	kernel32        = syscall.NewLazyDLL("kernel32.dll")
+	procHeapAlloc   = kernel32.NewProc("HeapAlloc")
+	procHeapFree    = kernel32.NewProc("HeapFree")
+	hHeapCall, _, _ = kernel32.NewProc("GetProcessHeap").Call()
+	hHeap           = syscall.Handle(hHeapCall)
+)
+
+func HeapAlloc(size uintptr) unsafe.Pointer {
+	ptr, _, _ := procHeapAlloc.Call(uintptr(hHeap), 0, size)
+	return unsafe.Pointer(uintptr(ptr))
+}
+
+func HeapFree(ptr unsafe.Pointer) {
+	procHeapFree.Call(uintptr(hHeap), 0, uintptr(ptr))
+}
+
 func run2() error {
 	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	if err != nil {
@@ -209,33 +226,46 @@ func run2() error {
 		return err
 	}
 
-	bufferContext, err := writer.DetachBuffer()
+	// Allocate memory for syncRootInfo struct
+	rawSyncRootInfo := HeapAlloc(uintptr(unsafe.Sizeof(provider.StorageProviderSyncRootInfo{})))
+	if rawSyncRootInfo == nil {
+		return fmt.Errorf("failed to allocate memory for syncRootInfo")
+	}
+	defer HeapFree(rawSyncRootInfo)
+	syncRootInfo := (*provider.StorageProviderSyncRootInfo)(rawSyncRootInfo)
+	// Initialize syncRootInfo using provider.NewStorageProviderSyncRootInfo()
+	newSyncRootInfo, err := provider.NewStorageProviderSyncRootInfo()
 	if err != nil {
 		return err
 	}
+	*syncRootInfo = *newSyncRootInfo
 
-	reader, err := streams.DataReaderFromBuffer(bufferContext)
-	if err != nil {
-		return err
-	}
-	bufferContent, err := reader.ReadBytes(uint32(len(syncRootId)))
-	if err != nil {
-		return err
-	}
-	fmt.Println(">>>>>>> buffer content", bufferContent, string(bufferContent))
-
-	syncRootInfo, err := provider.NewStorageProviderSyncRootInfo()
-	if err != nil {
-		return err
-	}
-
-	err = syncRootInfo.SetContext(bufferContext)
-	if err != nil {
-		return err
-	}
-
+	// Allocate memory for providerGUID
 	providerGUID := uuid.New().String()
 	fmt.Println(">>>>>>> set provider guid", providerGUID)
+	parsedGUID := ole.NewGUID(providerGUID)
+	fmt.Println(">>>>>>> parsed guid", parsedGUID)
+	if err != nil {
+		return fmt.Errorf("failed to parse providerGUID: %v", err)
+	}
+	sysGUIDData := HeapAlloc(unsafe.Sizeof(syscall.GUID{}))
+	if sysGUIDData == nil {
+		return fmt.Errorf("failed to allocate memory for sysGUIDData")
+	}
+	defer HeapFree(sysGUIDData)
+	sysGUID := (*syscall.GUID)(sysGUIDData)
+	sysGUID.Data1 = uint32(parsedGUID.Data1)
+	sysGUID.Data2 = parsedGUID.Data2
+	sysGUID.Data3 = parsedGUID.Data3
+	copy(sysGUID.Data4[:], parsedGUID.Data4[:])
+
+	err = syncRootInfo.SetProviderId(*sysGUID)
+	if err != nil {
+		return fmt.Errorf("failed to set providerGUID: %v", err)
+	}
+	runtime.KeepAlive(sysGUID)
+
+	// Allocate memory for syncRootId
 	// Open the current process token
 	var token windows.Token
 	err = windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token)
@@ -250,26 +280,21 @@ func run2() error {
 	sid := user.User.Sid.String()
 	syncRootId2 := fmt.Sprintf("%s!%s!%d", providerGUID, sid, -1438710713)
 	fmt.Println(">>>>>>> set sync root id", syncRootId2)
+	syncRootIdData := HeapAlloc(uintptr(len(syncRootId2)))
+	if syncRootIdData == nil {
+		return fmt.Errorf("failed to allocate memory for syncRootIdData")
+	}
+	defer HeapFree(syncRootIdData)
+	copy((*[1 << 30]byte)(syncRootIdData)[:len(syncRootId2)], syncRootId2)
 	// required
 	err = syncRootInfo.SetId(syncRootId2)
 	if err != nil {
 		return err
 	}
+	runtime.KeepAlive(syncRootIdData)
+
 	idd, err := syncRootInfo.GetId()
 	fmt.Println(">>>>>>> get sync root id", idd, err)
-
-	parsedGUID := ole.NewGUID(providerGUID)
-	sysGUID := syscall.GUID{
-		Data1: uint32(parsedGUID.Data1),
-		Data2: parsedGUID.Data2,
-		Data3: parsedGUID.Data3,
-		Data4: [8]byte{parsedGUID.Data4[0], parsedGUID.Data4[1], parsedGUID.Data4[2], parsedGUID.Data4[3], parsedGUID.Data4[4], parsedGUID.Data4[5], parsedGUID.Data4[6], parsedGUID.Data4[7]},
-	}
-	err = syncRootInfo.SetProviderId(sysGUID)
-	if err != nil {
-		return err
-	}
-
 	getid, err := syncRootInfo.GetProviderId()
 	if err != nil {
 		return err
@@ -290,6 +315,7 @@ func run2() error {
 	if err != nil {
 		return err
 	}
+	runtime.KeepAlive(iStorageDir)
 
 	// not required coz still crashes without them
 	err = syncRootInfo.SetHydrationPolicy(2)
@@ -322,6 +348,36 @@ func run2() error {
 	syncRootInfo.SetShowSiblingsAsGroup(false)
 	syncRootInfo.SetProtectionMode(1)
 	syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
+	bufferContext, err := writer.DetachBuffer()
+	if err != nil {
+		return err
+	}
+
+	// Allocate memory for bufferContext struct
+	rawBufferContext := HeapAlloc(uintptr(unsafe.Sizeof(*bufferContext)))
+	if rawBufferContext == nil {
+		return fmt.Errorf("failed to allocate memory for bufferContext")
+	}
+	defer HeapFree(rawBufferContext)
+	bufferContext = (*streams.IBuffer)(rawBufferContext)
+
+	reader, err := streams.DataReaderFromBuffer(bufferContext)
+	if err != nil {
+		return err
+	}
+	bufferContent, err := reader.ReadBytes(uint32(len(syncRootId)))
+	if err != nil {
+		return err
+	}
+	fmt.Println(">>>>>>> buffer content", bufferContent, string(bufferContent))
+
+	err = syncRootInfo.SetContext(bufferContext)
+	if err != nil {
+		return err
+	}
+
+	runtime.KeepAlive(syncRootInfo)
+	runtime.KeepAlive(bufferContext)
 	fmt.Printf(">>>>>>>>>> syncRootInfo: %+v\n", syncRootInfo)
 
 	err = provider.StorageProviderSyncRootManagerRegister(syncRootInfo)
