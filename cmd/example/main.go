@@ -6,15 +6,18 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"syscall"
 	"time"
 	"unsafe"
 
 	"github.com/go-ole/go-ole"
+	"github.com/google/uuid"
 	"github.com/saltosystems/winrt-go"
 	"github.com/saltosystems/winrt-go/windows/foundation"
 	"github.com/saltosystems/winrt-go/windows/storage"
 	"github.com/saltosystems/winrt-go/windows/storage/provider"
 	"github.com/saltosystems/winrt-go/windows/storage/streams"
+	"golang.org/x/sys/windows"
 )
 
 func main() {
@@ -177,15 +180,15 @@ func run() error {
 }
 
 func run2() error {
-	//roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
-	//if err != nil {
-	//	return err
-	//}
-	//numRoots, err := roots.GetSize()
-	//if err != nil {
-	//	return err
-	//}
-	//fmt.Println("Number of roots:", numRoots)
+	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
+	if err != nil {
+		return err
+	}
+	numRoots, err := roots.GetSize()
+	if err != nil {
+		return err
+	}
+	fmt.Println("Number of roots:", numRoots)
 
 	tempBase, err := os.UserCacheDir()
 	if err != nil {
@@ -233,56 +236,43 @@ func run2() error {
 		return err
 	}
 
-	// Allocate memory for providerGUID
-	//providerGUID := uuid.New().String()
-	//fmt.Println(">>>>>>> set provider guid", providerGUID)
-	//parsedGUID := ole.NewGUID(providerGUID)
-	//sysGUID := windows.GUID{
-	//	Data1: parsedGUID.Data1,
-	//	Data2: parsedGUID.Data2,
-	//	Data3: parsedGUID.Data3,
-	//	Data4: [8]byte{parsedGUID.Data4[0], parsedGUID.Data4[1], parsedGUID.Data4[2], parsedGUID.Data4[3], parsedGUID.Data4[4], parsedGUID.Data4[5], parsedGUID.Data4[6], parsedGUID.Data4[7]},
-	//}
-	//fmt.Println(">>>>>>> parsed guid", parsedGUID)
-
-	//err = syncRootInfo.SetProviderId(syscall.GUID(sysGUID))
-	//if err != nil {
-	//	return fmt.Errorf("failed to set providerGUID: %v", err)
-	//}
-	//runtime.KeepAlive(sysGUID)
-
-	// Allocate memory for syncRootId
+	providerGUID := uuid.New().String()
+	fmt.Println(">>>>>>> set provider guid", providerGUID)
 	// Open the current process token
-	/*
-		var token windows.Token
-		err = windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token)
-		if err != nil {
-			return err
-		}
-		defer token.Close() // Ensure the token handle is closed
-		user, err := token.GetTokenUser()
-		if err != nil {
-			return err
-		}
-		sid := user.User.Sid.String()
-		syncRootId2 := fmt.Sprintf("%s!%s!%d", providerGUID, sid, -1438710713)
-		fmt.Println(">>>>>>> set sync root id", syncRootId2)
-		syncRootIdData := HeapAlloc(uintptr(len(syncRootId2)))
-		if syncRootIdData == nil {
-			return fmt.Errorf("failed to allocate memory for syncRootIdData")
-		}
-		defer HeapFree(syncRootIdData)
-		copy((*[1 << 30]byte)(syncRootIdData)[:len(syncRootId2)], syncRootId2)
-		err = syncRootInfo.SetId(syncRootId2)
-		if err != nil {
-			return err
-		}
-		runtime.KeepAlive(syncRootId2)
-		runtime.KeepAlive(syncRootIdData)
-	*/
+	var token windows.Token
+	err = windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY, &token)
+	if err != nil {
+		return err
+	}
+	defer token.Close() // Ensure the token handle is closed
+	user, err := token.GetTokenUser()
+	if err != nil {
+		return err
+	}
+	sid := user.User.Sid.String()
+	syncRootId2 := fmt.Sprintf("%s!%s!%d", providerGUID, sid, -1438710713)
+	fmt.Println(">>>>>>> set sync root id", syncRootId2)
+
+	err = syncRootInfo.SetId(syncRootId2)
+	if err != nil {
+		return err
+	}
 
 	idd, err := syncRootInfo.GetId()
 	fmt.Println(">>>>>>> get sync root id", idd, err)
+
+	parsedGUID := ole.NewGUID(providerGUID)
+	sysGUID := syscall.GUID{
+		Data1: parsedGUID.Data1,
+		Data2: parsedGUID.Data2,
+		Data3: parsedGUID.Data3,
+		Data4: [8]byte{parsedGUID.Data4[0], parsedGUID.Data4[1], parsedGUID.Data4[2], parsedGUID.Data4[3], parsedGUID.Data4[4], parsedGUID.Data4[5], parsedGUID.Data4[6], parsedGUID.Data4[7]},
+	}
+	err = syncRootInfo.SetProviderId(sysGUID)
+	if err != nil {
+		return err
+	}
+
 	getid, err := syncRootInfo.GetProviderId()
 	if err != nil {
 		return err
@@ -305,26 +295,26 @@ func run2() error {
 	runtime.KeepAlive(iStorageDir)
 
 	// not required coz still crashes without them
-	//err = syncRootInfo.SetHydrationPolicy(2)
-	//if err != nil {
-	//	return err
-	//}
-	//err = syncRootInfo.SetHydrationPolicyModifier(0)
-	//if err != nil {
-	//	return err
-	//}
-	//err = syncRootInfo.SetPopulationPolicy(1)
-	//if err != nil {
-	//	return err
-	//}
-	//err = syncRootInfo.SetInSyncPolicy(provider.StorageProviderInSyncPolicyPreserveInsyncForSyncEngine)
-	//if err != nil {
-	//	return err
-	//}
-	//err = syncRootInfo.SetHardlinkPolicy(0)
-	//if err != nil {
-	//	return err
-	//}
+	err = syncRootInfo.SetHydrationPolicy(2)
+	if err != nil {
+		return err
+	}
+	err = syncRootInfo.SetHydrationPolicyModifier(0)
+	if err != nil {
+		return err
+	}
+	err = syncRootInfo.SetPopulationPolicy(1)
+	if err != nil {
+		return err
+	}
+	err = syncRootInfo.SetInSyncPolicy(provider.StorageProviderInSyncPolicyPreserveInsyncForSyncEngine)
+	if err != nil {
+		return err
+	}
+	err = syncRootInfo.SetHardlinkPolicy(0)
+	if err != nil {
+		return err
+	}
 
 	// required
 	verString := "1.0"
@@ -337,20 +327,19 @@ func run2() error {
 	syncRootInfo.SetAllowPinning(true)
 	syncRootInfo.SetShowSiblingsAsGroup(false)
 	syncRootInfo.SetProtectionMode(1)
-
 	displayName := filepath.Base(syncRootPath)
 	syncRootInfo.SetDisplayNameResource(displayName)
 	runtime.KeepAlive(displayName)
 	fmt.Printf(">>>>>>>>>> syncRootInfo: %+v\n", syncRootInfo)
 
-	roots, err := provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
+	roots, err = provider.StorageProviderSyncRootManagerGetCurrentSyncRoots()
 	if err != nil {
 		return err
 	}
 	fmt.Println(">>>>>>> got current sync roots", roots)
 	fmt.Println(">>>>>>> err", err)
 	fmt.Println("done")
-	numRoots, err := roots.GetSize()
+	numRoots, err = roots.GetSize()
 	if err != nil {
 		return err
 	}
@@ -361,8 +350,8 @@ func run2() error {
 	runtime.KeepAlive(syncRootInfo)
 	runtime.KeepAlive(verString)
 	runtime.KeepAlive(iStorageDir)
-	//runtime.KeepAlive(sysGUID)
-	//runtime.KeepAlive(syncRootId2)
+	runtime.KeepAlive(syncRootId2)
+	runtime.KeepAlive(sysGUID)
 	runtime.KeepAlive(iStorageDir)
 	runtime.KeepAlive(verString)
 	runtime.KeepAlive(displayName)
