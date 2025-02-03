@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/user"
+	"path/filepath"
 	"syscall"
 	"unsafe"
 
@@ -161,17 +163,6 @@ func run2() error {
 		fmt.Println("Error setting ID:", err)
 		return err
 	}
-	// required
-	idd, err := syncRootInfo.GetId()
-	fmt.Println(">>>>>>> idddd", idd, err)
-
-	// not required coz still crashes without them
-	// err = syncRootInfo.SetProviderId(syscall.GUID(*ole.NewGUID(uuid.String())))
-	// if err != nil {
-	// 	return err
-	// }
-	// pidd, err := syncRootInfo.GetProviderId()
-	// fmt.Println(">>>>>>> ppppidddd", pidd, err)
 
 	err = syncRootInfo.SetIconResource("C:\\WINDOWS\\system32\\imageres.dll,-1043")
 	if err != nil {
@@ -180,17 +171,17 @@ func run2() error {
 	}
 
 	// this is not causing the crash
-	// tempBase, err := os.UserCacheDir()
-	// if err != nil {
-	// 	return err
-	// }
-	// syncRootPath, err := os.MkdirTemp(tempBase, "syncRootPath")
-	// if err != nil {
-	// 	return err
-	// }
+	tempBase, err := os.UserCacheDir()
+	if err != nil {
+		return err
+	}
+	syncRootPath, err := os.MkdirTemp(tempBase, "syncRootPath")
+	if err != nil {
+		return err
+	}
 
-	syncRootPath := "C:\\Users\\hangk\\AppData\\Local\\syncRootPath1179387943"
-	println(syncRootPath)
+	// syncRootPath := "C:\\Users\\hangk\\AppData\\Local\\syncRootPath1179387943"
+	// println(syncRootPath)
 	res, err := GetFolderFromPath(syncRootPath)
 	if err != nil {
 		return err
@@ -238,12 +229,9 @@ func run2() error {
 	syncRootInfo.SetAllowPinning(true)
 	syncRootInfo.SetShowSiblingsAsGroup(false)
 	syncRootInfo.SetProtectionMode(1)
-	// syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
-	//PrintAllFields(syncRootInfo)
+	syncRootInfo.SetDisplayNameResource(filepath.Base(syncRootPath))
+	// PrintAllFields(syncRootInfo)
 	fmt.Println(">>>>>>> sync root info", syncRootInfo)
-
-	log.Printf("Sync root info: %+v", syncRootInfo)
-	// log.Printf("Path: %s", path)
 
 	err = provider.StorageProviderSyncRootManagerRegister(syncRootInfo)
 	if err != nil {
