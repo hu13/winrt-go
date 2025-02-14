@@ -6,7 +6,6 @@
 package provider
 
 import (
-	"fmt"
 	"syscall"
 	"unsafe"
 
