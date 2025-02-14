@@ -81,18 +81,13 @@ func StorageProviderSyncRootManagerRegister(syncRootInformation *StorageProvider
 	}
 	v := (*iStorageProviderSyncRootManagerStatics)(unsafe.Pointer(inspectable))
 
-	fmt.Println(">>>>>>>>>> 0000 result", v)
-
 	hr, g1, g2 := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerRegister,
 		uintptr(unsafe.Pointer(v)),                   // this
 		uintptr(unsafe.Pointer(syncRootInformation)), // in StorageProviderSyncRootInfo
 	)
 
-	fmt.Println(">>>>>>>>>> 1111 result", hr, g1, g2,  ole.NewError(hr))
-
 	if hr != 0 {
-		fmt.Println(">>>>>>>>>> 2222 result", hr, g1, g2.Error())
 		return ole.NewError(hr)
 	}
 
