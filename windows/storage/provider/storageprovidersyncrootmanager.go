@@ -81,7 +81,7 @@ func StorageProviderSyncRootManagerRegister(syncRootInformation *StorageProvider
 	}
 	v := (*iStorageProviderSyncRootManagerStatics)(unsafe.Pointer(inspectable))
 
-	hr, g1, g2 := syscall.SyscallN(
+	hr, _, _ := syscall.SyscallN(
 		v.VTable().StorageProviderSyncRootManagerRegister,
 		uintptr(unsafe.Pointer(v)),                   // this
 		uintptr(unsafe.Pointer(syncRootInformation)), // in StorageProviderSyncRootInfo
